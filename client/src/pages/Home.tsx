@@ -33,6 +33,16 @@ export default function Home() {
         <LoadingScreen />
       ) : (
         <div className="flex flex-col min-h-screen">
+          {/* Navigation */}
+          <nav className="bg-[#1A1F3A] border-b border-[#2A2F4A] py-4 px-4">
+            <div className="max-w-6xl mx-auto flex justify-center gap-8">
+              <a href="/" className="text-[#D4AF8A] font-cairo font-bold hover:text-white transition-colors">الرئيسية</a>
+              <a href="/memories" className="text-foreground font-cairo hover:text-[#D4AF8A] transition-colors">الذكريات</a>
+              <a href="/tasks" className="text-foreground font-cairo hover:text-[#D4AF8A] transition-colors">المهام</a>
+              <a href="/events" className="text-foreground font-cairo hover:text-[#D4AF8A] transition-colors">الأحداث</a>
+            </div>
+          </nav>
+
           <main className="flex-1 flex flex-col">
             <HeroSection onRevealClick={() => setShowReveal(true)} />
             {showReveal && <RevealSection />}
