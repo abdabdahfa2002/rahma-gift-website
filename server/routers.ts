@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { createMemory, getUserMemories, updateMemory, deleteMemory, createTask, getUserTasks, updateTask, deleteTask, createEvent, getUserEvents, updateEvent, deleteEvent } from "./db";
+import { uploadToCloudinary, deleteFromCloudinary } from "./upload";
 
 export const appRouter = router({
   system: systemRouter,
@@ -89,6 +90,37 @@ export const appRouter = router({
     delete: protectedProcedure
       .input(z.number())
       .mutation(({ input }) => deleteEvent(input)),
+  }),
+
+  upload: router({
+    uploadFile: protectedProcedure
+      .input(z.object({
+        fileData: z.instanceof(Buffer),
+        fileName: z.string(),
+        folder: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const result = await uploadToCloudinary(
+            input.fileData,
+            input.fileName,
+            input.folder || "memories"
+          );
+          return result;
+        } catch (error) {
+          throw new Error(`Upload failed: ${error}`);
+        }
+      }),
+    deleteFile: protectedProcedure
+      .input(z.string())
+      .mutation(async ({ input }) => {
+        try {
+          await deleteFromCloudinary(input);
+          return { success: true };
+        } catch (error) {
+          throw new Error(`Delete failed: ${error}`);
+        }
+      }),
   }),
 });
 

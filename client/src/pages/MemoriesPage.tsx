@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 export default function MemoriesPage() {
   const [isOpen, setIsOpen] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ url: string; name: string } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -20,6 +23,31 @@ export default function MemoriesPage() {
   const { data: memories, isLoading, refetch } = trpc.memories.list.useQuery();
   const createMutation = trpc.memories.create.useMutation();
   const deleteMutation = trpc.memories.delete.useMutation();
+  const uploadMutation = trpc.upload.uploadFile.useMutation();
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const result = await uploadMutation.mutateAsync({
+        fileData: new Uint8Array(buffer) as any,
+        fileName: file.name,
+        folder: 'memories',
+      });
+
+      setUploadedFile({ url: result.url, name: file.name });
+      setFormData({ ...formData, imageUrl: result.url });
+      toast.success('تم رفع الملف بنجاح!');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast.error('فشل رفع الملف');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,10 +59,13 @@ export default function MemoriesPage() {
         date: new Date(formData.date),
       });
       setFormData({ title: '', description: '', imageUrl: '', date: new Date().toISOString().split('T')[0] });
+      setUploadedFile(null);
       setIsOpen(false);
       refetch();
+      toast.success('تم حفظ الذكرية بنجاح!');
     } catch (error) {
       console.error('Error creating memory:', error);
+      toast.error('فشل حفظ الذكرية');
     }
   };
 
@@ -42,8 +73,10 @@ export default function MemoriesPage() {
     try {
       await deleteMutation.mutateAsync(id);
       refetch();
+      toast.success('تم حذف الذكرية');
     } catch (error) {
       console.error('Error deleting memory:', error);
+      toast.error('فشل حذف الذكرية');
     }
   };
 
@@ -60,7 +93,7 @@ export default function MemoriesPage() {
                 ذكرية جديدة
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-[#1A1F3A] border-[#2A2F4A]">
+            <DialogContent className="bg-[#1A1F3A] border-[#2A2F4A] max-w-md">
               <DialogHeader>
                 <DialogTitle className="text-[#D4AF8A] font-cairo">أضيفي ذكرية جديدة</DialogTitle>
               </DialogHeader>
@@ -92,7 +125,47 @@ export default function MemoriesPage() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-[#D4AF8A] text-background hover:bg-[#E8C4A0]">
+
+                {/* File Upload Section */}
+                <div className="border-2 border-dashed border-[#D4AF8A] rounded-lg p-4">
+                  <label className="block text-sm font-amiri text-foreground mb-3">رفع صورة أو ملف</label>
+                  {uploadedFile ? (
+                    <div className="bg-[#2A2F4A] p-3 rounded flex items-center justify-between">
+                      <span className="text-sm text-[#D4AF8A] truncate">{uploadedFile.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUploadedFile(null);
+                          setFormData({ ...formData, imageUrl: '' });
+                        }}
+                        className="text-red-500 hover:text-red-400"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer">
+                      <div className="flex items-center justify-center gap-2 text-[#D4AF8A] hover:text-[#E8C4A0] transition-colors">
+                        <Upload size={20} />
+                        <span className="text-sm font-amiri">اضغطي لرفع ملف</span>
+                      </div>
+                      <input
+                        type="file"
+                        onChange={handleFileUpload}
+                        disabled={isUploading}
+                        className="hidden"
+                        accept="image/*,.pdf,.doc,.docx"
+                      />
+                    </label>
+                  )}
+                  {isUploading && <p className="text-xs text-muted-foreground mt-2">جاري الرفع...</p>}
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isUploading}
+                  className="w-full bg-[#D4AF8A] text-background hover:bg-[#E8C4A0] disabled:opacity-50"
+                >
                   حفظ الذكرية
                 </Button>
               </form>
@@ -102,9 +175,10 @@ export default function MemoriesPage() {
 
         {/* Decorative Line */}
         <div className="flex justify-center mb-12">
-          <div className="w-32 h-px bg-gradient-to-r from-transparent via-[#D4AF8A] to-transparent"
-               style={{ boxShadow: '0 0 15px rgba(212, 175, 138, 0.4)' }}>
-          </div>
+          <div
+            className="w-32 h-px bg-gradient-to-r from-transparent via-[#D4AF8A] to-transparent"
+            style={{ boxShadow: '0 0 15px rgba(212, 175, 138, 0.4)' }}
+          ></div>
         </div>
 
         {/* Memories Grid */}
