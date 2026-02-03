@@ -1,0 +1,12 @@
+node_modules
+dist
+.manus-logs
+.git
+.manus
+README_FIXES.md
+ideas.md
+todo.md
+deploy.sh
+patches
+drizzle/meta
+drizzle/migrations
