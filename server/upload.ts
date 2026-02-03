@@ -1,11 +1,12 @@
 import { v2 as cloudinary } from "cloudinary";
 import { Readable } from "stream";
+import { ENV } from "./_core/env";
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: ENV.cloudinaryCloudName,
+  api_key: ENV.cloudinaryApiKey,
+  api_secret: ENV.cloudinaryApiSecret,
 });
 
 export interface UploadResult {
@@ -80,8 +81,8 @@ export function generateSignedUrl(publicId: string, expiresIn: number = 3600): s
       public_id: publicId,
       timestamp,
     },
-    process.env.CLOUDINARY_API_SECRET || ""
+    ENV.cloudinaryApiSecret || ""
   );
 
-  return `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/authenticated/s--${signature}--/v${timestamp}/${publicId}`;
+  return `https://res.cloudinary.com/${ENV.cloudinaryCloudName}/image/authenticated/s--${signature}--/v${timestamp}/${publicId}`;
 }

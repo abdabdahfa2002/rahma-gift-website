@@ -7,4 +7,7 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME ?? "demp2u6fj",
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY ?? "693394869692574",
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET ?? "MkXvmLIW1UeUNKzTpTzd-3ZWVHw",
 };

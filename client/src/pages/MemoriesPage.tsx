@@ -252,7 +252,8 @@ export default function MemoriesPage() {
               >
                 {memory.imageUrl && (
                   <>
-                    {isImageFile(memory.imageUrl.split('.')[-1] === 'jpg' ? 'image/jpeg' : 'image/png') ? (
+                    {/* Check if URL contains common image extensions or cloudinary image markers */}
+                    {memory.imageUrl.match(/\.(jpg|jpeg|png|gif|webp|avif)/i) || memory.imageUrl.includes('/image/upload/') ? (
                       <img
                         src={memory.imageUrl}
                         alt={memory.title}
